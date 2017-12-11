@@ -1,0 +1,11 @@
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\SiteMapper.exe.config
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\SiteMapper.exe
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\SiteMapper.pdb
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\WebDriver.dll
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\WebDriver.Support.dll
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\WebDriver.xml
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\bin\Debug\WebDriver.Support.xml
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\obj\Debug\SiteMapper.csprojResolveAssemblyReference.cache
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\obj\Debug\SiteMapper.csproj.CoreCompileInputs.cache
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\obj\Debug\SiteMapper.exe
+E:\GitHub\SiteMapper\SiteMapper\SiteMapper\obj\Debug\SiteMapper.pdb
