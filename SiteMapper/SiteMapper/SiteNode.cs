@@ -11,6 +11,11 @@ namespace SiteMapper
     {
         public string Name { get; set; }
         private List<IWebElement> links;
+        public List<IWebElement> Links
+        {
+            get { return links; }
+            set { links = value; }
+        }
 
         public SiteNode(string name, List<IWebElement> list)
         {
@@ -18,25 +23,8 @@ namespace SiteMapper
             links = new List<IWebElement>(list);
         }
 
-        public void AddLink(IWebElement link)
-        {
-            links.Add(link);
-        }
+        
 
-        public void AddRangeLinks(List<IWebElement> list)
-        {
-            links.AddRange(list);
-        }
-
-        public IWebElement GetLink(int id)
-        {
-            return links[id];
-        }
-
-        public List<IWebElement> GetAllLinks()
-        {
-            return links;
-        }
 
 
     }
