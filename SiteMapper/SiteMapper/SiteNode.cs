@@ -16,11 +16,13 @@ namespace SiteMapper
             get { return links; }
             set { links = value; }
         }
+        public byte[] Screenshot { get; set; }
 
-        public SiteNode(string name, List<IWebElement> list)
+        public SiteNode(string name, List<IWebElement> list, byte[] screenshot)
         {
-            this.Name = name;
+            Name = name;
             links = new List<IWebElement>(list);
+            Screenshot = screenshot;
         }
 
         

@@ -2,6 +2,8 @@
 using OpenQA.Selenium.Interactions;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -11,6 +13,7 @@ namespace SiteMapper
     {
         private IWebDriver driver;
         private string siteUrl;
+        private string screenshootsPath = @"C:\Users\polsz\Desktop\";
 
 
         public ObjectiveMethod(IWebDriver driver, string url)
@@ -26,8 +29,10 @@ namespace SiteMapper
             List<SiteNode> nodes2;
 
             OpenUrl(siteUrl);
+            CreateFolderForScreenshots(screenshootsPath, driver.Title);
             rootNode = CreateRootNode();
             Print(rootNode);
+            SaveByteScreenshootAsJpg(rootNode, screenshootsPath);
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
 
             //nodes2 = new List<SiteNode>(FindElementsFromSiteNode(nodes[5]));
@@ -57,7 +62,7 @@ namespace SiteMapper
 
         private SiteNode CreateRootNode()
         {
-            var rootNode = new SiteNode(driver.Title, FindElements());
+            var rootNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
             return rootNode;
         }
 
@@ -74,9 +79,10 @@ namespace SiteMapper
                     elements = FindElements();
                     elements[i].Click();
                     Thread.Sleep(1000);
-                    var newNode = new SiteNode(driver.Title, FindElements());
+                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
                     elementsToReturn.Add(newNode);
                     Print(newNode);
+                    SaveByteScreenshootAsJpg(newNode, screenshootsPath);
                     driver.Navigate().Back();
                 }
                 catch(ArgumentOutOfRangeException ex)
@@ -113,9 +119,10 @@ namespace SiteMapper
                     elementsPrevNode = FindElements();
                     elementsPrevNode[i].Click();
                     Thread.Sleep(1000);
-                    var newNode = new SiteNode(driver.Title, FindElements());
+                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
                     elementsToReturn.Add(newNode);
                     Print(newNode);
+                    SaveByteScreenshootAsJpg(newNode, screenshootsPath);
                     driver.Navigate().Back();
                 }
                 catch (ArgumentOutOfRangeException ex)
@@ -164,6 +171,53 @@ namespace SiteMapper
                 Console.WriteLine(element.Text);
             }
             Console.WriteLine();
+        }
+
+
+
+        public byte[] TakeScreenshoot()
+        {
+            var ss = ((ITakesScreenshot)driver).GetScreenshot();
+            byte[] screenAsByteArray = ss.AsByteArray;
+            return screenAsByteArray;
+        }
+
+        public void SaveByteScreenshootAsJpg(byte[] screenshoot, string path)
+        {
+            using (var ms = new MemoryStream(screenshoot))
+            {
+                var img = Image.FromStream(ms);
+                img.Save(path + driver.Title + ".jpg");
+            }
+        }
+
+        public void SaveByteScreenshootAsJpg(SiteNode node, string path)
+        {
+            using (var ms = new MemoryStream(node.Screenshot))
+            {
+                var img = Image.FromStream(ms);
+                img.Save(path + driver.Title + ".jpg");
+            }
+        }
+
+        public void CreateFolderForScreenshots(string path, string folderName)
+        {
+            string fullPath = path + folderName;
+            if (Directory.Exists(fullPath))
+            {
+                int number = 2;
+                string pathTmp = fullPath;
+                do
+                {
+                    fullPath = pathTmp;
+                    fullPath += "_" + number;
+                    number++;
+                } while (Directory.Exists(fullPath));
+                
+            }
+            Directory.CreateDirectory(fullPath);
+            screenshootsPath = fullPath + @"\";
+
         }
 
         private void RemoveSameNodeNames(SiteNode siteNode)
