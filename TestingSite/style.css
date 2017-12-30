@@ -1,0 +1,52 @@
+nav 
+{
+    background-color: #16358b;
+    color: #E9B64A;
+}
+
+h1 
+{
+    font-family: 'Lobster', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: #E9B64A;
+}
+
+h2 
+{
+    font-family: 'Lobster', sans-serif;
+    letter-spacing: 2px;
+    color: #E9B64A;
+}
+
+a:link
+{
+    text-decoration: none;
+}
+
+
+.container 
+{
+    margin-top: 80px;
+}
+
+.btn
+{
+    font-size: 20px;
+}
+
+.panel-footer > a
+{
+    padding-left:30px;
+    padding-right:30px;
+}
+
+.img-center 
+{
+    margin:0 auto;
+}
+
+.img-thumbnail:hover
+{
+    background-color: #E9B64A;
+}
