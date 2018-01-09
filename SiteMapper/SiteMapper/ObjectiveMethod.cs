@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace SiteMapper
@@ -13,7 +14,7 @@ namespace SiteMapper
     {
         private IWebDriver driver;
         private string siteUrl;
-        private string screenshootsPath = @"C:\Users\polsz\Desktop\";
+        private string screenshootsPath = @"C:\Users\Bartek\Desktop\";
 
 
         public ObjectiveMethod(IWebDriver driver, string url)
@@ -182,12 +183,14 @@ namespace SiteMapper
             return screenAsByteArray;
         }
 
+        private static readonly Regex InvalidFileRegex = new Regex(string.Format("[{0}]", Regex.Escape(@"<>:""/\|?*")));
+
         public void SaveByteScreenshootAsJpg(byte[] screenshoot, string path)
         {
             using (var ms = new MemoryStream(screenshoot))
             {
                 var img = Image.FromStream(ms);
-                img.Save(path + driver.Title + ".jpg");
+                img.Save(path + InvalidFileRegex.Replace(driver.Title, string.Empty) + ".jpg");
             }
         }
 
@@ -196,7 +199,7 @@ namespace SiteMapper
             using (var ms = new MemoryStream(node.Screenshot))
             {
                 var img = Image.FromStream(ms);
-                img.Save(path + driver.Title + ".jpg");
+                img.Save(path + InvalidFileRegex.Replace(driver.Title, string.Empty) + ".jpg");
             }
         }
 
