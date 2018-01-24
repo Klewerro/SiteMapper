@@ -1,10 +1,12 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using SiteMapper.IO;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Threading;
 
 namespace SiteMapper
@@ -14,6 +16,7 @@ namespace SiteMapper
         private IWebDriver driver;
         private string siteUrl;
         private string screenshootsPath = @"C:\Users\polsz\Desktop\";
+        ScreenshotSaving screenshotSaving;
 
 
         public ObjectiveMethod(IWebDriver driver, string url)
@@ -29,10 +32,10 @@ namespace SiteMapper
             List<SiteNode> nodes2;
 
             OpenUrl(siteUrl);
-            CreateFolderForScreenshots(screenshootsPath, driver.Title);
+            screenshotSaving = new ScreenshotSaving(screenshootsPath, driver.Title);
             rootNode = CreateRootNode();
             Print(rootNode);
-            SaveByteScreenshootAsJpg(rootNode, screenshootsPath);
+            screenshotSaving.SaveScreenshotAsJpg(rootNode);
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
 
             //nodes2 = new List<SiteNode>(FindElementsFromSiteNode(nodes[5]));
@@ -82,7 +85,7 @@ namespace SiteMapper
                     var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
                     elementsToReturn.Add(newNode);
                     Print(newNode);
-                    SaveByteScreenshootAsJpg(newNode, screenshootsPath);
+                    screenshotSaving.SaveScreenshotAsJpg(newNode);
                     driver.Navigate().Back();
                 }
                 catch(ArgumentOutOfRangeException ex)
@@ -122,7 +125,7 @@ namespace SiteMapper
                     var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
                     elementsToReturn.Add(newNode);
                     Print(newNode);
-                    SaveByteScreenshootAsJpg(newNode, screenshootsPath);
+                    screenshotSaving.SaveScreenshotAsJpg(newNode);
                     driver.Navigate().Back();
                 }
                 catch (ArgumentOutOfRangeException ex)
@@ -182,43 +185,7 @@ namespace SiteMapper
             return screenAsByteArray;
         }
 
-        public void SaveByteScreenshootAsJpg(byte[] screenshoot, string path)
-        {
-            using (var ms = new MemoryStream(screenshoot))
-            {
-                var img = Image.FromStream(ms);
-                img.Save(path + driver.Title + ".jpg");
-            }
-        }
 
-        public void SaveByteScreenshootAsJpg(SiteNode node, string path)
-        {
-            using (var ms = new MemoryStream(node.Screenshot))
-            {
-                var img = Image.FromStream(ms);
-                img.Save(path + driver.Title + ".jpg");
-            }
-        }
-
-        public void CreateFolderForScreenshots(string path, string folderName)
-        {
-            string fullPath = path + folderName;
-            if (Directory.Exists(fullPath))
-            {
-                int number = 2;
-                string pathTmp = fullPath;
-                do
-                {
-                    fullPath = pathTmp;
-                    fullPath += "_" + number;
-                    number++;
-                } while (Directory.Exists(fullPath));
-                
-            }
-            Directory.CreateDirectory(fullPath);
-            screenshootsPath = fullPath + @"\";
-
-        }
 
         private void RemoveSameNodeNames(SiteNode siteNode)
         {

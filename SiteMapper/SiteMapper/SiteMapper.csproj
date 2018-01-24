@@ -54,6 +54,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\ScreenshotSaving.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ObjectiveMethod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
