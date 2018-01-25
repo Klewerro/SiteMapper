@@ -13,7 +13,6 @@ namespace SeleniumProjInz2_v2
         static void Main(string[] args)
         {
             var driver = new ChromeDriver();
-            var standardMethod = new StandardMethod();
             var objectiveMethod = new ObjectiveMethod(driver, "https://trello.com/");
             //var objectiveMethod = new ObjectiveMethod(driver, "E:/GitHub/SiteMapper/TestingSite/Index.html");
 

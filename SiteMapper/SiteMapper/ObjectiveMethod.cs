@@ -3,6 +3,7 @@ using OpenQA.Selenium.Interactions;
 using SiteMapper.IO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace SiteMapper
         private string siteUrl;
         private string screenshootsPath = @"C:\Users\polsz\Desktop\";
         ScreenshotSaving screenshotSaving;
+        int counterOfSites = 0;
 
 
         public ObjectiveMethod(IWebDriver driver, string url)
@@ -30,6 +32,8 @@ namespace SiteMapper
             SiteNode rootNode;
             List<SiteNode> nodes;
             List<SiteNode> nodes2;
+
+            ConsoleOutputToTxt(screenshootsPath);
 
             OpenUrl(siteUrl);
             screenshotSaving = new ScreenshotSaving(screenshootsPath, driver.Title);
@@ -168,12 +172,23 @@ namespace SiteMapper
 
         public void Print(SiteNode node)
         {
-            Console.WriteLine("!Tytuł obecnej strony: " + node.Name);
+            counterOfSites++;
+            Console.WriteLine($"!Current site tittle {node.Name} |{counterOfSites}");
             foreach (var element in node.Links)
             {
                 Console.WriteLine(element.Text);
             }
             Console.WriteLine();
+        }
+
+        public void ConsoleOutputToTxt(string path)
+        {
+            Console.WriteLine($@"Entire output will be saved in location: {path}, and file: consoleLog.txt");
+
+            var streamwriter = new StreamWriter(path + "consoleLog.txt");
+            streamwriter.AutoFlush = true;
+            Console.SetOut(streamwriter);
+            Console.SetError(streamwriter);
         }
 
 

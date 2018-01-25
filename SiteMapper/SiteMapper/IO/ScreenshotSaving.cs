@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SiteMapper.IO
@@ -12,7 +13,8 @@ namespace SiteMapper.IO
     class ScreenshotSaving
     {
         private string folderPath;
-        private string folderName;
+        private readonly string folderName;
+        private static readonly Regex InvalidFileRegex = new Regex(string.Format("[{0}]", Regex.Escape(@"<>:""/\|?*")));
 
 
         public ScreenshotSaving(string folderPath, string folderName)
@@ -29,7 +31,8 @@ namespace SiteMapper.IO
             using (var ms = new MemoryStream(node.Screenshot))
             {
                 var img = Image.FromStream(ms);
-                img.Save(folderPath + node.Name + ".jpg");
+                //img.Save(folderPath + node.Name + ".jpg");
+                img.Save(folderPath + InvalidFileRegex.Replace(node.Name, string.Empty) + ".jpg");
             }
         }
 
