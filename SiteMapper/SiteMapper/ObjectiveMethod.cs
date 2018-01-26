@@ -16,7 +16,8 @@ namespace SiteMapper
     {
         private IWebDriver driver;
         private string siteUrl;
-        private string screenshootsPath = @"C:\Users\polsz\Desktop\";
+        private string savingDataPath = @"C:\Users\polsz\Desktop\";
+        public string siteTitle;
         ScreenshotSaving screenshotSaving;
         int counterOfSites = 0;
 
@@ -33,10 +34,10 @@ namespace SiteMapper
             List<SiteNode> nodes;
             List<SiteNode> nodes2;
 
-            ConsoleOutputToTxt(screenshootsPath);
+            //ConsoleOutputToTxt(screenshootsPath);
 
             OpenUrl(siteUrl);
-            screenshotSaving = new ScreenshotSaving(screenshootsPath, driver.Title);
+            screenshotSaving = new ScreenshotSaving(savingDataPath, siteTitle);
             rootNode = CreateRootNode();
             Print(rootNode);
             screenshotSaving.SaveScreenshotAsJpg(rootNode);
@@ -59,6 +60,7 @@ namespace SiteMapper
         private void OpenUrl(string url)
         {
             driver.Navigate().GoToUrl(url);
+            siteTitle = driver.Title;
         }
 
         private List<IWebElement> FindElements()
@@ -94,18 +96,27 @@ namespace SiteMapper
                 }
                 catch(ArgumentOutOfRangeException ex)
                 {
+                    Console.WriteLine(ex.StackTrace);
                     NewTabHandle();
                     elements = FindElements();
                     continue;
                 }
-                catch(InvalidOperationException ex2)    //Element generatet by JS or being before element
+                catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
                 {
-                    Console.WriteLine();
-                    Console.WriteLine("Pominięto");
-                    Console.ReadKey();
+                    Console.WriteLine("Somethin before");
+                    IJavaScriptExecutor ex = (IJavaScriptExecutor)driver;
+                    ex.ExecuteScript("arguments[0].click();", elements[i]);
+
+                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+                    elementsToReturn.Add(newNode);
+                    Print(newNode);
+                    screenshotSaving.SaveScreenshotAsJpg(newNode);
+                    driver.Navigate().Back();
+
                     continue;
                 }
-                
+
+
             }
             return elementsToReturn;
         }
@@ -179,6 +190,31 @@ namespace SiteMapper
                 Console.WriteLine(element.Text);
             }
             Console.WriteLine();
+
+            PrintAlsoToTxtFile(node, savingDataPath);
+        }
+
+        public void PrintAlsoToTxtFile(SiteNode node, string pathToFile)
+        {
+            string pathWithFilename = pathToFile + "consoleLog.txt";
+
+            if(counterOfSites == 1)
+            {
+                File.WriteAllText(pathWithFilename, null);
+            }
+           
+
+            using (StreamWriter writer = File.AppendText(pathWithFilename))
+            {
+                writer.AutoFlush = true;
+                writer.WriteLine($"!Current site tittle {node.Name} |{counterOfSites}");
+                foreach (var element in node.Links)
+                {
+                    writer.WriteLine(element.Text);
+                }
+                writer.WriteLine();
+                writer.Flush();
+            }
         }
 
         public void ConsoleOutputToTxt(string path)

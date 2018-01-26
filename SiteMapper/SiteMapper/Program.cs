@@ -17,7 +17,6 @@ namespace SeleniumProjInz2_v2
             //var objectiveMethod = new ObjectiveMethod(driver, "E:/GitHub/SiteMapper/TestingSite/Index.html");
 
             objectiveMethod.Run();
-            //standardMethod.Run();
         }
 
     }
