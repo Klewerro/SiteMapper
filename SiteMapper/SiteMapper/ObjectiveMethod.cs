@@ -62,6 +62,7 @@ namespace SiteMapper
         {
             driver.Navigate().GoToUrl(url);
             siteTitle = driver.Title;
+
         }
 
         private List<IWebElement> FindElements()
