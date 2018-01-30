@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.6.7.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.6.7\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -51,8 +54,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Output\ConsoleOutput.cs" />
+    <Compile Include="Output\Paths.cs" />
+    <Compile Include="Output\ScreenshotSaving.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ObjectiveMethod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SiteNode.cs" />
+    <Compile Include="StandardMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
