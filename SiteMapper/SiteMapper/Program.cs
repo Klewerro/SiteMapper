@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using SiteMapper.Output;
 
 namespace SeleniumProjInz2_v2
 {
@@ -13,8 +14,7 @@ namespace SeleniumProjInz2_v2
         static void Main(string[] args)
         {
             var driver = new ChromeDriver();
-            var objectiveMethod = new ObjectiveMethod(driver, "https://trello.com/");
-            //var objectiveMethod = new ObjectiveMethod(driver, "E:/GitHub/SiteMapper/TestingSite/Index.html");
+            var objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
 
             objectiveMethod.Run();
         }

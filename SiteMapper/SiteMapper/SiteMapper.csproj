@@ -54,6 +54,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Output\ConsoleOutput.cs" />
+    <Compile Include="Output\Paths.cs" />
     <Compile Include="Output\ScreenshotSaving.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ObjectiveMethod.cs" />

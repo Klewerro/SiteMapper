@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SiteMapper
 {
-    class SiteNode
+    public class SiteNode
     {
         public string Name { get; set; }
         private List<IWebElement> links;

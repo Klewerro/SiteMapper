@@ -1,14 +1,11 @@
 ﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Interactions;
 using SiteMapper.IO;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Threading;
+using SiteMapper.Output;
 
 namespace SiteMapper
 {
@@ -16,10 +13,9 @@ namespace SiteMapper
     {
         private IWebDriver driver;
         private string siteUrl;
-        private string savingDataPath = @"C:\Users\polsz\Desktop\";
+        private string savingDataPath = Paths.savingDataPath;
         public string siteTitle;
         ScreenshotSaving screenshotSaving;
-        int counterOfSites = 0;
 
 
         public ObjectiveMethod(IWebDriver driver, string url)
@@ -39,12 +35,17 @@ namespace SiteMapper
             OpenUrl(siteUrl);
             screenshotSaving = new ScreenshotSaving(savingDataPath, siteTitle);
             rootNode = CreateRootNode();
-            Print(rootNode);
+            ConsoleOutput.Print(rootNode);
+            ConsoleOutput.PrintAlsoToTxtFile(rootNode, savingDataPath);
             screenshotSaving.SaveScreenshotAsJpg(rootNode);
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
 
             //nodes2 = new List<SiteNode>(FindElementsFromSiteNode(nodes[5]));
 
+            Console.WriteLine("After readkey: FindElementsFromSiteNode(i)");
+            Console.ReadKey();
+
+            //obudować w jakąś metodę!! do iteracyjnego wywołania
             nodes2 = new List<SiteNode>();
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -86,13 +87,7 @@ namespace SiteMapper
                 try
                 {
                     elements = FindElements();
-                    elements[i].Click();
-                    Thread.Sleep(1000);
-                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
-                    elementsToReturn.Add(newNode);
-                    Print(newNode);
-                    screenshotSaving.SaveScreenshotAsJpg(newNode);
-                    driver.Navigate().Back();
+                    elementsToReturn.Add(CreateSiteNode(elements[i]));
                 }
                 catch(ArgumentOutOfRangeException ex)
                 {
@@ -103,23 +98,16 @@ namespace SiteMapper
                 }
                 catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
                 {
-                    Console.WriteLine("Somethin before");
-                    IJavaScriptExecutor ex = (IJavaScriptExecutor)driver;
-                    ex.ExecuteScript("arguments[0].click();", elements[i]);
-
-                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
-                    elementsToReturn.Add(newNode);
-                    Print(newNode);
-                    screenshotSaving.SaveScreenshotAsJpg(newNode);
-                    driver.Navigate().Back();
-
-                    continue;
+                    InvalidOperationHandle(elements[i], elementsToReturn);
                 }
 
 
             }
             return elementsToReturn;
         }
+
+
+        
 
         private List<SiteNode> FindElementsFromSiteNode(int nodeNumber)
         {
@@ -127,40 +115,38 @@ namespace SiteMapper
             //var elements = nodeAbove.GetAllLinks();
             var elementsToReturn = new List<SiteNode>();
 
+            try
+            {
+                elementsPrevNode[nodeNumber].Click();
+            }
+            catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
+            {
+                InvalidOperationHandle(elementsPrevNode[nodeNumber], elementsToReturn);
+            }
 
-            elementsPrevNode[nodeNumber].Click();
+
+
+
 
             for (int i = 0; i < elementsPrevNode.Count; i++)
             {
                 try
                 {
                     elementsPrevNode = FindElements();
-                    elementsPrevNode[i].Click();
-                    Thread.Sleep(1000);
-                    var newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
-                    elementsToReturn.Add(newNode);
-                    Print(newNode);
-                    screenshotSaving.SaveScreenshotAsJpg(newNode);
-                    driver.Navigate().Back();
+                    elementsToReturn.Add(CreateSiteNode(elementsPrevNode[i]));
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
+                    Console.WriteLine(ex.StackTrace);
                     NewTabHandle();
                     elementsPrevNode = FindElements();
                     continue;
                 }
                 catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
                 {
-                    //scroll 250 UP
-                    //IJavaScriptExecutor jse = (IJavaScriptExecutor)driver;
-                    //jse.ExecuteScript("scroll(0, -50);");
-                    //Thread.Sleep(500);
-                    Console.WriteLine();
-                    Console.WriteLine("Pominięto");
-                    Console.ReadKey();
-                    continue;
+                    InvalidOperationHandle(elementsPrevNode[i], elementsToReturn);
                 }
-                catch(StaleElementReferenceException ex3)   //Give the browser some time 4 refresh elements
+                catch (StaleElementReferenceException ex3)   //Give the browser some time 4 refresh elements
                 {
                     Thread.Sleep(1000);
                     continue;
@@ -170,6 +156,21 @@ namespace SiteMapper
             return elementsToReturn;
         }
 
+
+        private SiteNode CreateSiteNode(IWebElement element)
+        {
+
+            element.Click();
+            Thread.Sleep(500);
+            var siteNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+
+            ConsoleOutput.Print(siteNode);
+            ConsoleOutput.PrintAlsoToTxtFile(siteNode, savingDataPath);
+            screenshotSaving.SaveScreenshotAsJpg(siteNode);
+
+            driver.Navigate().Back();
+            return siteNode;
+        }
 
         private void NewTabHandle()
         {
@@ -179,55 +180,29 @@ namespace SiteMapper
             driver.SwitchTo().Window(handles[0]);
             Thread.Sleep(500);  //Browser time 4 close tab
             driver.Navigate().Forward();
+
         }
 
-        public void Print(SiteNode node)
+        private void InvalidOperationHandle(IWebElement element, List<SiteNode> listOfElements)
         {
-            counterOfSites++;
-            Console.WriteLine($"!Current site tittle {node.Name} |{counterOfSites}");
-            foreach (var element in node.Links)
+            string prevNodeTitle = driver.Title;
+            Console.WriteLine("Somethin before");
+            IJavaScriptExecutor ex = (IJavaScriptExecutor)driver;
+            ex.ExecuteScript("arguments[0].click();", element);
+
+            SiteNode newNode;
+            if (driver.Title == prevNodeTitle)  //if href is taking to the same site, then dont list it
             {
-                Console.WriteLine(element.Text);
+                return;
             }
-            Console.WriteLine();
 
-            PrintAlsoToTxtFile(node, savingDataPath);
+            newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+            listOfElements.Add(newNode);    //?
+            ConsoleOutput.Print(newNode);
+            ConsoleOutput.PrintAlsoToTxtFile(newNode, savingDataPath);
+            screenshotSaving.SaveScreenshotAsJpg(newNode);
+            driver.Navigate().Back();
         }
-
-        public void PrintAlsoToTxtFile(SiteNode node, string pathToFile)
-        {
-            string pathWithFilename = pathToFile + "consoleLog.txt";
-
-            if(counterOfSites == 1)
-            {
-                File.WriteAllText(pathWithFilename, null);
-            }
-           
-
-            using (StreamWriter writer = File.AppendText(pathWithFilename))
-            {
-                writer.AutoFlush = true;
-                writer.WriteLine($"!Current site tittle {node.Name} |{counterOfSites}");
-                foreach (var element in node.Links)
-                {
-                    writer.WriteLine(element.Text);
-                }
-                writer.WriteLine();
-                writer.Flush();
-            }
-        }
-
-        public void ConsoleOutputToTxt(string path)
-        {
-            Console.WriteLine($@"Entire output will be saved in location: {path}, and file: consoleLog.txt");
-
-            var streamwriter = new StreamWriter(path + "consoleLog.txt");
-            streamwriter.AutoFlush = true;
-            Console.SetOut(streamwriter);
-            Console.SetError(streamwriter);
-        }
-
-
 
         public byte[] TakeScreenshoot()
         {
@@ -245,7 +220,7 @@ namespace SiteMapper
         }
 
 
-
+        
 
     }
 }
