@@ -55,5 +55,36 @@ namespace SiteMapper.Output
             Console.SetOut(streamwriter);
             Console.SetError(streamwriter);
         }
+
+        public static string PrintSingleNodeToForm(SiteNode node)
+        {
+            string value = "";
+            counterOfSites++;
+            value += ($"!Current site tittle: {node.Name} |{counterOfSites}");
+            foreach (var element in node.Links)
+            {
+                value += (element.Text + "\n");
+            }
+            value += "\n";
+            return value;
+        }
+
+        //public static string PrintToForm(List<SiteNode> nodes)
+        //{
+        //    string value = "";
+        //    foreach (var node in nodes)
+        //    {
+        //        value += ($"!Current site tittle: {node.Name} |{counterOfSites} \n");
+        //        foreach (var element in node.Links)
+        //        {
+        //            value += (element.ToString() + "\n");
+        //        }
+        //        value += "\n";
+        //    }
+
+            
+            
+        //    return value;
+        //}
     }
 }

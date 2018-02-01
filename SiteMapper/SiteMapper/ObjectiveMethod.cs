@@ -5,17 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SiteMapper.Output;
+using System.Windows.Forms;
 
 namespace SiteMapper
 {
-    class ObjectiveMethod
+    public class ObjectiveMethod
     {
         private IWebDriver driver;
         private string siteUrl;
         private string savingDataPath = Paths.savingDataPath;
         public string siteTitle;
         ScreenshotSaving screenshotSaving;
-
+        public List<SiteNode> listOfNodes;
 
         public ObjectiveMethod(IWebDriver driver, string url)
         {
@@ -40,10 +41,7 @@ namespace SiteMapper
             screenshotSaving.SaveScreenshotAsJpg(rootNode);
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
 
-            //nodes2 = new List<SiteNode>(FindElementsFromSiteNode(nodes[5]));
 
-            Console.WriteLine("After readkey: FindElementsFromSiteNode(i)");
-            Console.ReadKey();
 
             //obudować w jakąś metodę!! do iteracyjnego wywołania
             //moze podac jakas kolekcje na wejsciu (ta kolejnego itego poziomu)
@@ -73,8 +71,12 @@ namespace SiteMapper
 
 
 
+          
 
-            Console.ReadKey();
+
+            listOfNodes = nodes;
+
+           // Console.ReadKey();
         }
 
 
@@ -241,6 +243,9 @@ namespace SiteMapper
 
             ConsoleOutput.Print(siteNode);
             ConsoleOutput.PrintAlsoToTxtFile(siteNode, savingDataPath);
+
+
+
             screenshotSaving.SaveScreenshotAsJpg(siteNode);
 
             driver.Navigate().Back();
