@@ -5,30 +5,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SiteMapper.Output;
-using System.Windows.Forms;
 
 namespace SiteMapper
 {
-    public class ObjectiveMethod
+    class RequrenceMethod2
     {
         private IWebDriver driver;
         private string siteUrl;
         private string savingDataPath = Paths.savingDataPath;
         public string siteTitle;
         ScreenshotSaving screenshotSaving;
-        public List<SiteNode> listOfNodes;
+        public List<SiteNode> wynik;
 
-        public ObjectiveMethod(IWebDriver driver, string url)
+
+        public RequrenceMethod2(IWebDriver driver, string url)
         {
             this.driver = driver;
             siteUrl = url;
+            OpenUrl(siteUrl);
+            screenshotSaving = new ScreenshotSaving(savingDataPath, siteTitle);
+            wynik = new List<SiteNode>();
         }
 
         public void Run()
         {
+
             SiteNode rootNode;
-            List<SiteNode> nodes;
-            List<SiteNode> nodes2;
+            
 
             //ConsoleOutputToTxt(screenshootsPath);
 
@@ -39,94 +42,50 @@ namespace SiteMapper
             ConsoleOutput.Print(rootNode);
             ConsoleOutput.PrintAlsoToTxtFile(rootNode, savingDataPath);
             screenshotSaving.SaveScreenshotAsJpg(rootNode);
-            nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
+
+            var x = new List<SiteNode>();
+            x.Add(rootNode);
+
+            Iteration(x);
 
 
-
-            //obudować w jakąś metodę!! do iteracyjnego wywołania
-            //moze podac jakas kolekcje na wejsciu (ta kolejnego itego poziomu)
-
-
-            nodes2 = new List<SiteNode>();
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                var nodeListTemp = new List<SiteNode>();
-                nodeListTemp.AddRange(FindElementsFromSiteNode(i));
-                foreach (var node in nodeListTemp)
-                {
-                    nodes2.Add(node);
-                }
-            }
-
-
-            Run2();
-
-
-
-
-            Console.WriteLine(nodes2[2].LinksString[2].ToString());
-
-            Console.WriteLine("After readkey: FindElementsFromSiteNode(1)");
             Console.ReadKey();
-
-
-
-          
-
-
-            listOfNodes = nodes;
-
-           // Console.ReadKey();
         }
 
 
-        public void Run2()
+        private void Iteration(List<SiteNode> rootNodes)
         {
-            
-        }
-
-
-
-
-
-
-        private List<SiteNode> Iterate(List<SiteNode> listOfNodes)
-        {
-            var foundNodes = new List<SiteNode>();
-            List<SiteNode> nodeListTemp;
-
-            for (int i = 0; i < listOfNodes.Count; i++)
+            var list = new List<SiteNode>();
+            for (int i = 0; i < rootNodes.Count; i++)
             {
-                nodeListTemp = new List<SiteNode>();
-                nodeListTemp.AddRange(FindElementsFromSiteNode(i));
-                foreach (var node in nodeListTemp)
+                //var elementsToClick = rootNodes[i].Links;
+                var elementsToClick = FindElements();
+                for (int j = 0; j < elementsToClick.Count; j++)
                 {
-                    foundNodes.Add(node);
+                    elementsToClick = FindElements();
+                    elementsToClick[j].Click();
+                    list.Add(CreateRootNode());
+                    ConsoleOutput.Print(list[j]);
+                    ConsoleOutput.PrintAlsoToTxtFile(list[j], savingDataPath);
+                    screenshotSaving.SaveScreenshotAsJpg(list[j]);
+
+                    driver.Navigate().Back();
                 }
+                wynik.AddRange(list);
+
             }
-            return foundNodes;
+            Iteration(list);
         }
 
-        private List<SiteNode> Iterate2(List<SiteNode> listOfNodes)
+
+
+
+        private void OpenUrl(string url)
         {
-            var foundNodes = new List<SiteNode>();
-            List<SiteNode> nodeListTemp;
+            driver.Navigate().GoToUrl(url);
+            siteTitle = driver.Title;
 
-            foreach (var singleNode in listOfNodes)
-            {
-                nodeListTemp = new List<SiteNode>();
-                nodeListTemp.AddRange(FindElementsFromSiteNode(singleNode));
-                foreach (var node in nodeListTemp)
-                {
-                    foundNodes.Add(node);
-                }
-            }
-
-
-            return foundNodes;
         }
-
-        
 
         private List<IWebElement> FindElements()
         {
@@ -140,14 +99,6 @@ namespace SiteMapper
             return rootNode;
         }
 
-        private List<List<SiteNode>> GroupSiteNodes(List<SiteNode> listOfNodes)
-        {
-            var listsToReturn = new List<List<SiteNode>>();
-
-            listsToReturn.Add(listOfNodes);
-
-            return listsToReturn;
-        }
 
 
         private List<SiteNode> FindElementsFromSiteNode(SiteNode rootNode)
@@ -163,7 +114,7 @@ namespace SiteMapper
                     elements = FindElements();
                     elementsToReturn.Add(CreateSiteNode(elements[i]));
                 }
-                catch(ArgumentOutOfRangeException ex)
+                catch (ArgumentOutOfRangeException ex)
                 {
                     Console.WriteLine(ex.StackTrace);
                     NewTabHandle();
@@ -181,57 +132,9 @@ namespace SiteMapper
         }
 
 
-       // private SiteNode FindElementsFromSiteNode2(SiteNode)
 
 
-
-        private List<SiteNode> FindElementsFromSiteNode(int nodeNumber)
-        {
-            if(nodeNumber > 0)  //after goin inside-back to prev node site
-            {
-                driver.Navigate().Back();
-            }
-
-            var elementsPrevNode = FindElements();
-            //var elements = nodeAbove.GetAllLinks();
-            var elementsToReturn = new List<SiteNode>();
-
-            try
-            {
-                elementsPrevNode[nodeNumber].Click();
-            }
-            catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
-            {
-                InvalidOperationHandle(elementsPrevNode[nodeNumber], elementsToReturn);
-            }
-
-            for (int i = 0; i < elementsPrevNode.Count; i++)
-            {
-                try
-                {
-                    elementsPrevNode = FindElements();
-                    elementsToReturn.Add(CreateSiteNode(elementsPrevNode[i]));
-                }
-                catch (ArgumentOutOfRangeException ex)
-                {
-                    Console.WriteLine(ex.StackTrace);
-                    NewTabHandle();
-                    elementsPrevNode = FindElements();
-                    continue;
-                }
-                catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
-                {
-                    InvalidOperationHandle(elementsPrevNode[i], elementsToReturn);
-                }
-                catch (StaleElementReferenceException ex3)   //Give the browser some time 4 refresh elements
-                {
-                    Thread.Sleep(1000);
-                    continue;
-                }
-
-            }
-            return elementsToReturn;
-        }
+        
 
 
         private SiteNode CreateSiteNode(IWebElement element)
@@ -243,9 +146,6 @@ namespace SiteMapper
 
             ConsoleOutput.Print(siteNode);
             ConsoleOutput.PrintAlsoToTxtFile(siteNode, savingDataPath);
-
-
-
             screenshotSaving.SaveScreenshotAsJpg(siteNode);
 
             driver.Navigate().Back();
@@ -299,12 +199,6 @@ namespace SiteMapper
             list.Distinct().ToList();
         }
 
-        private void OpenUrl(string url)
-        {
-            driver.Navigate().GoToUrl(url);
-            siteTitle = driver.Title;
-
-        }
 
 
 

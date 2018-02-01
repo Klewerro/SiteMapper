@@ -65,8 +65,10 @@
     <Compile Include="Program.cs" />
     <Compile Include="ObjectiveMethod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequrenceMethod.cs" />
+    <Compile Include="RequrenceMethod2.cs" />
+    <Compile Include="SimpleMethod.cs" />
     <Compile Include="SiteNode.cs" />
-    <Compile Include="StandardMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
