@@ -17,7 +17,7 @@ namespace SeleniumProjInz2_v2
 
             var driver = new ChromeDriver();
             var objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
-            objectiveMethod.Run();
+            objectiveMethod.Run(4);
             //objectiveMethod.Openurl(Paths.siteToMapAddress);
             //objectiveMethod.RunRecursive(3);
 

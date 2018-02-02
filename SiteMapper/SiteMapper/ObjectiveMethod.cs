@@ -23,92 +23,52 @@ namespace SiteMapper
             siteUrl = url;
         }
 
-        public List<SiteNode> Run()
+        public List<SiteNode> Run(int n)
         {
+            
+            if (n < 1) return null;
+
             SiteNode rootNode;
             List<SiteNode> nodes;
-            List<SiteNode> nodes2;
-
-
-            
-
-
+            var resultList = new List<SiteNode>();
             OpenUrl(siteUrl);
 
             rootNode = CreateRootNode();
+            var rootListed = new List<SiteNode>();
+            rootListed.Add(rootNode);
+            resultList.Add(rootNode);
+            n--;
+            if(n < 1)  return resultList;
 
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
+            resultList.AddRange(nodes);
+            n--;
+            if (n < 1) return resultList;
 
-            List<SiteNode> rootListed = new List<SiteNode>();
-            rootListed.Add(rootNode);
+//_______________________REQURENCE________________________________
+
+            //var nodes2 = FindElementsFromBiggestNode(nodes);
+            //resultList.AddRange(nodes2);
+            //n--;
+            //if (n < 1) return resultList;
+
+            //var nodes3 = FindElementsFromBiggestNode(nodes2);
+            //resultList.AddRange(nodes3);
+            //n--;
+            //if (n < 1) return resultList;
+
+            //var nodes4 = FindElementsFromBiggestNode(nodes3);
+            //resultList.AddRange(nodes4);
+            //n--;
+            //if (n < 1) return resultList;
 
 
-
-            //obudować w jakąś metodę!! do iteracyjnego wywołania
-            //moze podac jakas kolekcje na wejsciu(ta kolejnego itego poziomu)
-
-            nodes2 = new List<SiteNode>();
-            for (int i = 0; i < nodes.Count; i++)
+            for (int i=n; i > 0 ; i--)
             {
-                var nodeListTemp = new List<SiteNode>();
-
-                nodeListTemp.AddRange(FindElementsFromSiteNode(nodes[i], i));
-                foreach (var node in nodeListTemp)
-                {
-                    nodes2.Add(node);
-                }
+                var tempNode = Recursion(nodes);
+                resultList.AddRange(tempNode);
             }
 
-            NavigateToFirstElementOfList(nodes2);
-            var nodes3 = new List<SiteNode>();
-            for (int i = 0; i < nodes2.Count; i++)
-            {
-                int[] nOfElementsArray = new int[nodes2.Count];
-                for (int y = 0; y < nodes2.Count; y++)
-                {
-                    nOfElementsArray[y] = nodes2[y].Links.Count - 1;
-                }
-
-
-                var nodeListTemp = new List<SiteNode>();
-
-                nodeListTemp.AddRange(FindElementsFromSiteNode(nodes2[i], nOfElementsArray[i]));
-                foreach (var node in nodeListTemp)
-                {
-                    nodes3.Add(node);
-                }
-
-            }
-
-
-            NavigateToFirstElementOfList(nodes3);
-            var nodes4 = new List<SiteNode>();
-            for (int i = 0; i < nodes3.Count; i++)
-            {
-                int[] nOfElementsArray = new int[nodes3.Count];
-                for (int y = 0; y < nodes3.Count; y++)
-                {
-                    nOfElementsArray[y] = nodes3[y].Links.Count - 1;
-                }
-
-
-                var nodeListTemp = new List<SiteNode>();
-
-                nodeListTemp.AddRange(FindElementsFromSiteNode(nodes3[i], nOfElementsArray[i]));
-                foreach (var node in nodeListTemp)
-                {
-                    nodes4.Add(node);
-                }
-
-            }
-
-
-            var list = new List<SiteNode>();
-            list.Add(rootNode);
-            list.AddRange(nodes);
-            list.AddRange(nodes2);
-            list.AddRange(nodes3);
-            list.AddRange(nodes4);
 
 
             int j = 0;
@@ -117,34 +77,30 @@ namespace SiteMapper
 
             //Run();
             
-            return list;
+            return resultList;
         }
+
+
+
 
         public void Openurl(string siteUrl)
         {
             OpenUrl(siteUrl);
         }
 
-        public List<SiteNode>RunRecursive(int nOfIterations)
-        {
-            var listToRetrun = new List<SiteNode>();
-            List<SiteNode> root = new List<SiteNode>();
-            root.Add(CreateRootNode());
-            List<SiteNode> nodes = FindElementsFromSiteNode(root[0]);
-            listToRetrun.AddRange(root);
-            listToRetrun.AddRange(nodes);
-
-            nOfIterations--;
-            if (nOfIterations > 0)
-                RunRecursive(nOfIterations);
-            return listToRetrun;
-        }
+        
 
 
         private void NavigateToFirstElementOfList(List<SiteNode> siteNodes)
         {
             var singleNode = siteNodes[0];
             driver.Navigate().GoToUrl(singleNode.Url);
+        }
+
+        private List<SiteNode> Recursion(List<SiteNode> prevNode)
+        {
+            return FindElementsFromBiggestNode(prevNode);
+            
         }
 
 
@@ -209,17 +165,40 @@ namespace SiteMapper
             return elementsToReturn;
         }
 
-        //private List<SiteNode> FourIteration()
-        //{
+        private List<SiteNode> FindElementsFromBiggestNode(List<SiteNode> prevNodeList)
+        {
+            NavigateToFirstElementOfList(prevNodeList);
 
-        //}
+            var listToReturn = new List<SiteNode>();
+            int[] nOfElementsArray = CreateArrayOfNodesLength(prevNodeList);
+
+            for (int i = 0; i < prevNodeList.Count; i++)
+            {
+                var nodeListTemp = new List<SiteNode>();
+                nodeListTemp.AddRange(FindElementsFromSiteNode(prevNodeList[i], nOfElementsArray[i]));
+                foreach (var node in nodeListTemp)
+                {
+                    listToReturn.Add(node);
+                }
+            }
+            return listToReturn;
+        }
+
+        private int[] CreateArrayOfNodesLength(List<SiteNode> nodeList)
+        {
+            int[] nOfElementsArray = new int[nodeList.Count];
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                nOfElementsArray[i] = nodeList[i].Links.Count() - 1;    
+                //-1 couse of lists iteration from 0
+            }
+            return nOfElementsArray;
+        }
 
 
 
         private List<SiteNode> FindElementsFromSiteNode(SiteNode rootNode, int indexToClick)
         {
-            
-
             if (indexToClick > 0)  //after goin inside-back to prev node site
             {
                 driver.Navigate().Back();

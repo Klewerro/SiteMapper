@@ -55,11 +55,27 @@ namespace SiteMapper
 
         private void button3_Click(object sender, EventArgs e)
         {
-            ChromeDriver driver = new ChromeDriver();
-            objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
+            if (checkBox1.Checked == true)
+            {
+                var chromeOptions = new ChromeOptions();
+                chromeOptions.AddArguments(new List<string>() { "headless" });
+                ChromeDriver driver = new ChromeDriver(chromeOptions);
+                objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
+            }
+
+            if (checkBox1.Checked == false)
+            {
+                ChromeDriver driver = new ChromeDriver();
+                objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
+            }
 
 
-            var nodes = objectiveMethod.Run();
+
+
+            
+
+
+            var nodes = objectiveMethod.Run(int.Parse(textBox3.Text));
 
             //foreach (var item in nodes)
             //{
@@ -78,7 +94,7 @@ namespace SiteMapper
             //PopulateTree(ref root, nodes);
 
 
-            GenerateNodeTreeRcursively(nodes);
+            //GenerateNodeTreeRcursively(nodes);
 
         }
 
@@ -144,27 +160,27 @@ namespace SiteMapper
         }
 
 
-        private static TreeNode GenerateNodeTreeRcursively(List<SiteNode> allNodes)
-        {
-            string rootNodeName = allNodes.Where(x => x.ParentNodeId == 0).FirstOrDefault().Name;
-            var root = new TreeNode(rootNodeName);
-            AddNodesRecursively(root, allNodes);
-            return root;
-        }
+        //private static TreeNode GenerateNodeTreeRcursively(List<SiteNode> allNodes)
+        //{
+        //    string rootNodeName = allNodes.Where(x => x.ParentNodeId == 0).FirstOrDefault().Name;
+        //    var root = new TreeNode(rootNodeName);
+        //    AddNodesRecursively(root, allNodes);
+        //    return root;
+        //}
 
-        private static TreeNode AddNodesRecursively(TreeNode rootNode, List<SiteNode> allNodes)
-        {
-            //int ID = rootNode.Nodes. //jakoś dobrać się do id-rodzica
-            var current = allNodes.Where(n => n.ParentNodeId == ID);
-            foreach (var singleNode in current)
-            {
-                var child = new TreeNode(singleNode.Name);
-                rootNode.Nodes.Add(child);
-                AddNodesRecursively(child, allNodes);
-            }
-            return rootNode;
+        //private static TreeNode AddNodesRecursively(TreeNode rootNode, List<SiteNode> allNodes)
+        //{
+        //    //int ID = rootNode.Nodes. //jakoś dobrać się do id-rodzica
+        //    var current = allNodes.Where(n => n.ParentNodeId == ID);
+        //    foreach (var singleNode in current)
+        //    {
+        //        var child = new TreeNode(singleNode.Name);
+        //        rootNode.Nodes.Add(child);
+        //        AddNodesRecursively(child, allNodes);
+        //    }
+        //    return rootNode;
 
-        }
+        //}
 
 
 
