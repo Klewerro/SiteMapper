@@ -10,20 +10,39 @@ namespace SiteMapper
     public class SiteNode
     {
         public string Name { get; set; }
-        private List<IWebElement> links;
-        public List<IWebElement> Links
-        {
-            get { return links; }
-            set { links = value; }
-        }
+        public List<IWebElement> Links { get; set; }     
+        public List<string> LinksString { get; set; }
         public byte[] Screenshot { get; set; }
+        public int SiteNodeId { get; private set; }
+        public int ParentNodeId { get; private set; }
+        public string  Url { get; set; }
 
-        public SiteNode(string name, List<IWebElement> list, byte[] screenshot)
+        public SiteNode(string name, List<IWebElement> list, int parentNodeId, byte[] screenshot, string url)
         {
             Name = name;
-            links = new List<IWebElement>(list);
+            Links = new List<IWebElement>(list);
             Screenshot = screenshot;
+            LinksString = ParseIWebElemetsNamesToString(Links);
+            ObjectiveMethod.nodeNumberId++;
+            SiteNodeId = ObjectiveMethod.nodeNumberId;
+            ParentNodeId = parentNodeId;
+            Url = url;
         }
+
+
+
+        private List<string> ParseIWebElemetsNamesToString(List<IWebElement> webElements)
+        {
+
+            var listOfStrings = new List<string>();
+            foreach (var element in webElements)
+            {
+                listOfStrings.Add(element.Text.ToString());
+            }
+            return listOfStrings;
+        }
+
+        
 
         
 

@@ -1,22 +1,21 @@
 ﻿using OpenQA.Selenium;
-using SiteMapper.IO;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using SiteMapper.Output;
+using SiteMapper.IO;
 
 namespace SiteMapper
 {
-    class ObjectiveMethod
+    public class ObjectiveMethod
     {
         private IWebDriver driver;
         private string siteUrl;
         private string savingDataPath = Paths.savingDataPath;
         public string siteTitle;
-        ScreenshotSaving screenshotSaving;
 
+        public static int nodeNumberId = 0;
 
         public ObjectiveMethod(IWebDriver driver, string url)
         {
@@ -24,58 +23,118 @@ namespace SiteMapper
             siteUrl = url;
         }
 
-        public void Run()
+        public List<SiteNode> Run(int n)
         {
+            
+            if (n < 1) return null;
+
             SiteNode rootNode;
             List<SiteNode> nodes;
-            List<SiteNode> nodes2;
-
-            //ConsoleOutputToTxt(screenshootsPath);
-
+            var resultList = new List<SiteNode>();
             OpenUrl(siteUrl);
-            screenshotSaving = new ScreenshotSaving(savingDataPath, siteTitle);
+
             rootNode = CreateRootNode();
-            ConsoleOutput.Print(rootNode);
-            ConsoleOutput.PrintAlsoToTxtFile(rootNode, savingDataPath);
-            screenshotSaving.SaveScreenshotAsJpg(rootNode);
+            var rootListed = new List<SiteNode>();
+            rootListed.Add(rootNode);
+            resultList.Add(rootNode);
+            n--;
+            if(n < 1)  return resultList;
+
             nodes = new List<SiteNode>(FindElementsFromSiteNode(rootNode));
+            resultList.AddRange(nodes);
+            n--;
+            if (n < 1) return resultList;
 
-            //nodes2 = new List<SiteNode>(FindElementsFromSiteNode(nodes[5]));
+//_______________________REQURENCE________________________________
 
-            Console.WriteLine("After readkey: FindElementsFromSiteNode(i)");
-            Console.ReadKey();
+            //var nodes2 = FindElementsFromBiggestNode(nodes);
+            //resultList.AddRange(nodes2);
+            //n--;
+            //if (n < 1) return resultList;
 
-            //obudować w jakąś metodę!! do iteracyjnego wywołania
-            nodes2 = new List<SiteNode>();
-            for (int i = 0; i < nodes.Count; i++)
+            //var nodes3 = FindElementsFromBiggestNode(nodes2);
+            //resultList.AddRange(nodes3);
+            //n--;
+            //if (n < 1) return resultList;
+
+            //var nodes4 = FindElementsFromBiggestNode(nodes3);
+            //resultList.AddRange(nodes4);
+            //n--;
+            //if (n < 1) return resultList;
+
+
+            for (int i=n; i > 0 ; i--)
             {
-                nodes2 = FindElementsFromSiteNode(i);
+                var tempNode = Recursion(nodes);
+                resultList.AddRange(tempNode);
             }
-            
+
+
+
+            int j = 0;
 
             
 
-            Console.ReadKey();
+            //Run();
+            
+            return resultList;
         }
 
-        private void OpenUrl(string url)
+
+
+
+        public void Openurl(string siteUrl)
         {
-            driver.Navigate().GoToUrl(url);
-            siteTitle = driver.Title;
-
+            OpenUrl(siteUrl);
         }
+
+        
+
+
+        private void NavigateToFirstElementOfList(List<SiteNode> siteNodes)
+        {
+            var singleNode = siteNodes[0];
+            driver.Navigate().GoToUrl(singleNode.Url);
+        }
+
+        private List<SiteNode> Recursion(List<SiteNode> prevNode)
+        {
+            return FindElementsFromBiggestNode(prevNode);
+            
+        }
+
+
+
 
         private List<IWebElement> FindElements()
         {
-            return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            try
+            {
+                return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            } catch (StaleElementReferenceException ex)
+            {
+                Thread.Sleep(1000);
+                return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            }
+            
         }
 
 
         private SiteNode CreateRootNode()
         {
-            var rootNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+            var rootNode = new SiteNode(driver.Title, FindElements(), 0, TakeScreenshoot(), driver.Url);
             return rootNode;
         }
+
+        private List<List<SiteNode>> GroupSiteNodes(List<SiteNode> listOfNodes)
+        {
+            var listsToReturn = new List<List<SiteNode>>();
+
+            listsToReturn.Add(listOfNodes);
+
+            return listsToReturn;
+        }
+
 
         private List<SiteNode> FindElementsFromSiteNode(SiteNode rootNode)
         {
@@ -88,18 +147,95 @@ namespace SiteMapper
                 try
                 {
                     elements = FindElements();
-                    elementsToReturn.Add(CreateSiteNode(elements[i]));
+                    elementsToReturn.Add(CreateSiteNode(elements[i], rootNode.SiteNodeId));
                 }
                 catch(ArgumentOutOfRangeException ex)
                 {
-                    Console.WriteLine(ex.StackTrace);
                     NewTabHandle();
                     elements = FindElements();
                     continue;
                 }
-                catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
+                catch (InvalidOperationException ex2)    //Element generated by JS or being before element
                 {
-                    InvalidOperationHandle(elements[i], elementsToReturn);
+                    InvalidOperationHandle(elements[i], rootNode,elementsToReturn);
+                }
+
+
+            }
+            return elementsToReturn;
+        }
+
+        private List<SiteNode> FindElementsFromBiggestNode(List<SiteNode> prevNodeList)
+        {
+            NavigateToFirstElementOfList(prevNodeList);
+
+            var listToReturn = new List<SiteNode>();
+            int[] nOfElementsArray = CreateArrayOfNodesLength(prevNodeList);
+
+            for (int i = 0; i < prevNodeList.Count; i++)
+            {
+                var nodeListTemp = new List<SiteNode>();
+                nodeListTemp.AddRange(FindElementsFromSiteNode(prevNodeList[i], nOfElementsArray[i]));
+                foreach (var node in nodeListTemp)
+                {
+                    listToReturn.Add(node);
+                }
+            }
+            return listToReturn;
+        }
+
+        private int[] CreateArrayOfNodesLength(List<SiteNode> nodeList)
+        {
+            int[] nOfElementsArray = new int[nodeList.Count];
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                nOfElementsArray[i] = nodeList[i].Links.Count() - 1;    
+                //-1 couse of lists iteration from 0
+            }
+            return nOfElementsArray;
+        }
+
+
+
+        private List<SiteNode> FindElementsFromSiteNode(SiteNode rootNode, int indexToClick)
+        {
+            if (indexToClick > 0)  //after goin inside-back to prev node site
+            {
+                driver.Navigate().Back();
+            }
+
+            var elementsPrevNode = FindElements();
+            //var elements = nodeAbove.GetAllLinks();
+            var elementsToReturn = new List<SiteNode>();
+
+            try
+            {
+                elementsPrevNode[indexToClick].Click();
+            }
+            catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
+            {
+                //InvalidOperationHandle(elementsPrevNode[nodeNumber], elementsToReturn);
+            }
+
+            //maybbn
+            var elements = rootNode.Links;
+
+            for (int i = 0; i < elements.Count; i++)
+            {
+                try
+                {
+                    elements = FindElements();
+                    elementsToReturn.Add(CreateSiteNode(elements[i], rootNode.SiteNodeId));
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    NewTabHandle();
+                    elements = FindElements();
+                    continue;
+                }
+                catch (InvalidOperationException ex2)    //Element generated by JS or being before element
+                {
+                    InvalidOperationHandle(elements[i], rootNode, elementsToReturn);
                 }
 
 
@@ -108,10 +244,14 @@ namespace SiteMapper
         }
 
 
-        
 
         private List<SiteNode> FindElementsFromSiteNode(int nodeNumber)
         {
+            if(nodeNumber > 0)  //after goin inside-back to prev node site
+            {
+                driver.Navigate().Back();
+            }
+
             var elementsPrevNode = FindElements();
             //var elements = nodeAbove.GetAllLinks();
             var elementsToReturn = new List<SiteNode>();
@@ -122,30 +262,25 @@ namespace SiteMapper
             }
             catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
             {
-                InvalidOperationHandle(elementsPrevNode[nodeNumber], elementsToReturn);
+                //InvalidOperationHandle(elementsPrevNode[nodeNumber], elementsToReturn);
             }
-
-
-
-
 
             for (int i = 0; i < elementsPrevNode.Count; i++)
             {
                 try
                 {
                     elementsPrevNode = FindElements();
-                    elementsToReturn.Add(CreateSiteNode(elementsPrevNode[i]));
+                    elementsToReturn.Add(CreateSiteNode(elementsPrevNode[i], nodeNumber));
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {
-                    Console.WriteLine(ex.StackTrace);
                     NewTabHandle();
                     elementsPrevNode = FindElements();
                     continue;
                 }
                 catch (InvalidOperationException ex2)    //Element generatet by JS or being before element
                 {
-                    InvalidOperationHandle(elementsPrevNode[i], elementsToReturn);
+                    //InvalidOperationHandle(elementsPrevNode[i], , elementsToReturn);
                 }
                 catch (StaleElementReferenceException ex3)   //Give the browser some time 4 refresh elements
                 {
@@ -158,16 +293,16 @@ namespace SiteMapper
         }
 
 
-        private SiteNode CreateSiteNode(IWebElement element)
+        private SiteNode CreateSiteNode(IWebElement element, int parentId)
         {
-
             element.Click();
             Thread.Sleep(500);
-            var siteNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+            var siteNode = new SiteNode(driver.Title, FindElements(), parentId, TakeScreenshoot(), driver.Url);
 
-            ConsoleOutput.Print(siteNode);
-            ConsoleOutput.PrintAlsoToTxtFile(siteNode, savingDataPath);
-            screenshotSaving.SaveScreenshotAsJpg(siteNode);
+
+
+
+
 
             driver.Navigate().Back();
             return siteNode;
@@ -184,10 +319,9 @@ namespace SiteMapper
 
         }
 
-        private void InvalidOperationHandle(IWebElement element, List<SiteNode> listOfElements)
+        private void InvalidOperationHandle(IWebElement element, SiteNode node, List<SiteNode> listOfElements)
         {
             string prevNodeTitle = driver.Title;
-            Console.WriteLine("Somethin before");
             IJavaScriptExecutor ex = (IJavaScriptExecutor)driver;
             ex.ExecuteScript("arguments[0].click();", element);
 
@@ -196,12 +330,8 @@ namespace SiteMapper
             {
                 return;
             }
-
-            newNode = new SiteNode(driver.Title, FindElements(), TakeScreenshoot());
+            newNode = new SiteNode(driver.Title, FindElements(), node.ParentNodeId, TakeScreenshoot(), driver.Url);
             listOfElements.Add(newNode);    //?
-            ConsoleOutput.Print(newNode);
-            ConsoleOutput.PrintAlsoToTxtFile(newNode, savingDataPath);
-            screenshotSaving.SaveScreenshotAsJpg(newNode);
             driver.Navigate().Back();
         }
 
@@ -220,8 +350,14 @@ namespace SiteMapper
             list.Distinct().ToList();
         }
 
+        private void OpenUrl(string url)
+        {
+            driver.Navigate().GoToUrl(url);
+            siteTitle = driver.Title;
 
-        
+        }
+
+
 
     }
 }
