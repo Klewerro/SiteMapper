@@ -59,6 +59,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NodesCollection.cs" />
     <Compile Include="Output\ConsoleOutput.cs" />
     <Compile Include="Output\Paths.cs" />
     <Compile Include="Output\ScreenshotSaving.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="RequrenceMethod2.cs" />
     <Compile Include="SimpleMethod.cs" />
     <Compile Include="SiteNode.cs" />
+    <Compile Include="TreeNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

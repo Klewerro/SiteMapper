@@ -12,13 +12,12 @@ namespace SeleniumProjInz2_v2
 {
     class Program
     {
-        [STAThread]
         static void Main(string[] args)
         {
 
-            //var driver = new ChromeDriver();
-            //var objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
-            //objectiveMethod.Run();
+            var driver = new ChromeDriver();
+            var objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
+            objectiveMethod.Run();
 
             //var requrenceMethod = new RequrenceMethod(driver, Paths.siteToMapAddress);
             //requrenceMethod.Run(null);
