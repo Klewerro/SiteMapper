@@ -15,8 +15,9 @@ namespace SiteMapper
         public byte[] Screenshot { get; set; }
         public int SiteNodeId { get; private set; }
         public int ParentNodeId { get; private set; }
+        public string  Url { get; set; }
 
-        public SiteNode(string name, List<IWebElement> list, int parentNodeId, byte[] screenshot)
+        public SiteNode(string name, List<IWebElement> list, int parentNodeId, byte[] screenshot, string url)
         {
             Name = name;
             Links = new List<IWebElement>(list);
@@ -25,6 +26,7 @@ namespace SiteMapper
             ObjectiveMethod.nodeNumberId++;
             SiteNodeId = ObjectiveMethod.nodeNumberId;
             ParentNodeId = parentNodeId;
+            Url = url;
         }
 
 

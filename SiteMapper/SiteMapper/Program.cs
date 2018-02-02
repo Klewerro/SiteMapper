@@ -18,15 +18,17 @@ namespace SeleniumProjInz2_v2
             var driver = new ChromeDriver();
             var objectiveMethod = new ObjectiveMethod(driver, Paths.siteToMapAddress);
             objectiveMethod.Run();
+            //objectiveMethod.Openurl(Paths.siteToMapAddress);
+            //objectiveMethod.RunRecursive(3);
 
             //var requrenceMethod = new RequrenceMethod(driver, Paths.siteToMapAddress);
             //requrenceMethod.Run(null);
 
             //var requrenceMethod2 = new RequrenceMethod2(driver, Paths.siteToMapAddress);
-            //requrenceMethod2.Run();
+            //requrenceMethod2.Run(4);
 
             //var simpleMethod = new SimpleMethod(driver, Paths.siteToMapAddress, 3);
-            //simpleMethod.Run();
+            //simpleMethod.Run(1);
 
         }
 

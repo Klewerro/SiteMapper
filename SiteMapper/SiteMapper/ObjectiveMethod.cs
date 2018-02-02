@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using SiteMapper.Output;
+using SiteMapper.IO;
 
 namespace SiteMapper
 {
@@ -13,7 +14,6 @@ namespace SiteMapper
         private string siteUrl;
         private string savingDataPath = Paths.savingDataPath;
         public string siteTitle;
-        //public List<SiteNode> listOfNodes;
 
         public static int nodeNumberId = 0;
 
@@ -44,8 +44,6 @@ namespace SiteMapper
 
 
 
-
-
             //obudować w jakąś metodę!! do iteracyjnego wywołania
             //moze podac jakas kolekcje na wejsciu(ta kolejnego itego poziomu)
 
@@ -54,7 +52,6 @@ namespace SiteMapper
             {
                 var nodeListTemp = new List<SiteNode>();
 
-
                 nodeListTemp.AddRange(FindElementsFromSiteNode(nodes[i], i));
                 foreach (var node in nodeListTemp)
                 {
@@ -62,84 +59,114 @@ namespace SiteMapper
                 }
             }
 
+            NavigateToFirstElementOfList(nodes2);
+            var nodes3 = new List<SiteNode>();
+            for (int i = 0; i < nodes2.Count; i++)
+            {
+                int[] nOfElementsArray = new int[nodes2.Count];
+                for (int y = 0; y < nodes2.Count; y++)
+                {
+                    nOfElementsArray[y] = nodes2[y].Links.Count - 1;
+                }
 
 
+                var nodeListTemp = new List<SiteNode>();
+
+                nodeListTemp.AddRange(FindElementsFromSiteNode(nodes2[i], nOfElementsArray[i]));
+                foreach (var node in nodeListTemp)
+                {
+                    nodes3.Add(node);
+                }
+
+            }
+
+
+            NavigateToFirstElementOfList(nodes3);
+            var nodes4 = new List<SiteNode>();
+            for (int i = 0; i < nodes3.Count; i++)
+            {
+                int[] nOfElementsArray = new int[nodes3.Count];
+                for (int y = 0; y < nodes3.Count; y++)
+                {
+                    nOfElementsArray[y] = nodes3[y].Links.Count - 1;
+                }
+
+
+                var nodeListTemp = new List<SiteNode>();
+
+                nodeListTemp.AddRange(FindElementsFromSiteNode(nodes3[i], nOfElementsArray[i]));
+                foreach (var node in nodeListTemp)
+                {
+                    nodes4.Add(node);
+                }
+
+            }
 
 
             var list = new List<SiteNode>();
             list.Add(rootNode);
             list.AddRange(nodes);
             list.AddRange(nodes2);
-
+            list.AddRange(nodes3);
+            list.AddRange(nodes4);
 
 
             int j = 0;
 
-
-
             
 
-
-
+            //Run();
             
-
             return list;
         }
 
-
-
-
-
-
-
-
-        private List<SiteNode> Iterate(List<SiteNode> listOfNodes)
+        public void Openurl(string siteUrl)
         {
-            var foundNodes = new List<SiteNode>();
-            List<SiteNode> nodeListTemp;
-
-            for (int i = 0; i < listOfNodes.Count; i++)
-            {
-                nodeListTemp = new List<SiteNode>();
-                nodeListTemp.AddRange(FindElementsFromSiteNode(i));
-                foreach (var node in nodeListTemp)
-                {
-                    foundNodes.Add(node);
-                }
-            }
-            return foundNodes;
+            OpenUrl(siteUrl);
         }
 
-        private List<SiteNode> Iterate2(List<SiteNode> listOfNodes)
+        public List<SiteNode>RunRecursive(int nOfIterations)
         {
-            var foundNodes = new List<SiteNode>();
-            List<SiteNode> nodeListTemp;
+            var listToRetrun = new List<SiteNode>();
+            List<SiteNode> root = new List<SiteNode>();
+            root.Add(CreateRootNode());
+            List<SiteNode> nodes = FindElementsFromSiteNode(root[0]);
+            listToRetrun.AddRange(root);
+            listToRetrun.AddRange(nodes);
 
-            foreach (var singleNode in listOfNodes)
-            {
-                nodeListTemp = new List<SiteNode>();
-                nodeListTemp.AddRange(FindElementsFromSiteNode(singleNode));
-                foreach (var node in nodeListTemp)
-                {
-                    foundNodes.Add(node);
-                }
-            }
-
-
-            return foundNodes;
+            nOfIterations--;
+            if (nOfIterations > 0)
+                RunRecursive(nOfIterations);
+            return listToRetrun;
         }
 
-        
+
+        private void NavigateToFirstElementOfList(List<SiteNode> siteNodes)
+        {
+            var singleNode = siteNodes[0];
+            driver.Navigate().GoToUrl(singleNode.Url);
+        }
+
+
+
 
         private List<IWebElement> FindElements()
         {
-            return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            try
+            {
+                return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            } catch (StaleElementReferenceException ex)
+            {
+                Thread.Sleep(1000);
+                return driver.FindElements(By.TagName("a")).Where(x => string.IsNullOrEmpty(x.Text) == false).ToList();
+            }
+            
         }
 
 
         private SiteNode CreateRootNode()
         {
-            var rootNode = new SiteNode(driver.Title, FindElements(), 0, TakeScreenshoot());
+            var rootNode = new SiteNode(driver.Title, FindElements(), 0, TakeScreenshoot(), driver.Url);
             return rootNode;
         }
 
@@ -181,6 +208,12 @@ namespace SiteMapper
             }
             return elementsToReturn;
         }
+
+        //private List<SiteNode> FourIteration()
+        //{
+
+        //}
+
 
 
         private List<SiteNode> FindElementsFromSiteNode(SiteNode rootNode, int indexToClick)
@@ -285,7 +318,7 @@ namespace SiteMapper
         {
             element.Click();
             Thread.Sleep(500);
-            var siteNode = new SiteNode(driver.Title, FindElements(), parentId, TakeScreenshoot());
+            var siteNode = new SiteNode(driver.Title, FindElements(), parentId, TakeScreenshoot(), driver.Url);
 
 
 
@@ -318,7 +351,7 @@ namespace SiteMapper
             {
                 return;
             }
-            newNode = new SiteNode(driver.Title, FindElements(), node.ParentNodeId, TakeScreenshoot());
+            newNode = new SiteNode(driver.Title, FindElements(), node.ParentNodeId, TakeScreenshoot(), driver.Url);
             listOfElements.Add(newNode);    //?
             driver.Navigate().Back();
         }

@@ -24,51 +24,31 @@ namespace SiteMapper
         }
 
 
-        public void Run()
+        public void Run(int nOfNodes)
         {
+
             
 
-            Console.WriteLine(driver.Title);
-            Console.WriteLine();
-            //List<IWebElement> links = FindElements();
-
-            //Level1(links);
-            //for (int i = 0; i < zaglebienie; i++)
-            //{
-
-            //    //PrepareForNext(i);
-            //}
-
-            VisitNode();
 
 
 
 
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
 
-        private void VisitNode()
+        private void VisitNode(int number)
         {
-            var nodes = FindElements();
-
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                nodes = FindElements();
-                Print(nodes);
-                nodes[i].Click();
-                Console.WriteLine(driver.Title);
-
-                VisitNode2();
-            }
-
-
-        }
-
-        private void VisitNode2()
-        {
+            var elements = FindElements();
+            elements[number].Click();
             Console.WriteLine(driver.Title);
+            driver.Navigate().Back();
+
         }
+
+
+
+
 
 
         private void Print(List<IWebElement> node)
@@ -78,41 +58,6 @@ namespace SiteMapper
                 Console.WriteLine(item.Text);
             }
         }
-
-
-
-
-
-
-        private List<IWebElement> Level1(List<IWebElement> links)
-        {
-            var linksToReturn = new List<IWebElement>();
-
-            for (int k = 0; k < links.Count; k++)
-            {
-                links = FindElements();
-                links[k].Click();
-                Console.WriteLine(driver.Title);
-                driver.Navigate().Back();
-            }
-
-            return linksToReturn;
-        }
-
-        private void PrepareForNext(int linkNumber)
-        {
-            var links = FindElements();
-            links[linkNumber].Click();
-            links = FindElements();
-            Level1(links);
-        }
-
-
-
-
-
-
-
 
 
         private List<IWebElement> FindElements()
